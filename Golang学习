@@ -3,7 +3,19 @@ Golang 学习
 记录Golang学习过程中遇到的若干问题，为以后记录
 
 
-golang连接postgresql数据库
+golang操作postgresql数据库
 --------------------------
+首先需要在使用的环境中导入pq包，格式如下：
+        import "database/sql"
+        import _ "github.com/lib/pq"
 
+### 打开数据库
+dbins, err = sql.Open("postgres", "user=dfs dbname=nosstats host=172.17.2.201 password=pwdnosstats sslmode=disable")
 
+### 向表中插入记录
+dbins.Exec("INSERT INTO stat_buckets(stat_time, bucket_name, servers, items) VALUES($1, $2, $3, ARRAY[$4::bigint,$5:    :bigint,$6::bigint,$7::bigint,$8::bigint,$9::bigint,$10::bigint,$11::bigint,$12::bigint])",stime, bname, sserv, items[0], items[1]    , items[2], items[3], items[4], items[5], items[6], items[7], items[8])
+注意:
+* 上面向数据库表stat_buckets中插入一条记录，记录的形式为(bigint, text, text, bigint[])
+* 如何将数组插入到postgresql中是一个技术活，可以参考上面的代码写法，之所以需要这样是因为如下两点：
+*# pq库尚未原生处理数组的逻辑，因此得一个个处理数组中的元素
+*# pq将所有的数据全部当做text，因此我们需要通过强制类型转换成为我们目的数据类型
